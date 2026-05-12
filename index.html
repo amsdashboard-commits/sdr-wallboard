@@ -277,19 +277,21 @@
   .lb-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(10, 1fr);
+    grid-auto-rows: 1fr;
     grid-auto-flow: column;
     gap: 0 2vw;
     flex: 1;
-    align-content: start;
+    align-content: stretch;
+    overflow: hidden;
   }
   .lb-row {
     display: grid;
     grid-template-columns: 2vw 1fr 5vw 2.4vw 2.4vw 2.5vw;
     align-items: center;
     gap: 0.5vw;
-    padding: 0.15vh 0;
+    padding: 0;
     border-bottom: 1px solid var(--border);
+    min-height: 0;
   }
   .lb-row:last-child { border-bottom: none; }
   .lb-rank {
@@ -434,7 +436,6 @@
       <div style="display:flex;gap:1.5vw;align-items:baseline;">
         <div class="lb-legend"><span class="lb-legend-dot" style="background:#93c5fd;"></span>Scheduled</div>
         <div class="lb-legend"><span class="lb-legend-dot" style="background:var(--good);"></span>Qualified</div>
-        <div class="lb-meta" id="lb-meta">Top 10</div>
       </div>
     </div>
     <div class="lb-grid" id="leaderboard"></div>
@@ -592,13 +593,16 @@
       })
       .slice(0, LEADERBOARD_SIZE);
 
-    document.getElementById('lb-meta').textContent = 'Showing ' + sorted.length;
-
     if (!sorted.length) {
       document.getElementById('leaderboard').innerHTML =
         '<div class="empty">No qualified demos yet this month</div>';
       return;
     }
+
+    // Dynamically size the grid: 2 columns, rows = ceil(count / 2).
+    // This makes the leaderboard fit any number of SDRs without spillover.
+    const rowCount = Math.ceil(sorted.length / 2);
+    document.getElementById('leaderboard').style.gridTemplateRows = `repeat(${rowCount}, 1fr)`;
 
     const rankClass = i => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
     document.getElementById('leaderboard').innerHTML = sorted.map((s, i) => {
